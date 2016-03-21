@@ -13,3 +13,7 @@ from django.views.generic import TemplateView
 # Create your views here.
 class HomePageView(TemplateView ):
     template_name = "index.html"
+
+
+class MakeCoverPage(TemplateView):
+    template_name = "make_cover.html"

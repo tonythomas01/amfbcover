@@ -20,5 +20,6 @@ import cover.views as views
 
 urlpatterns = [
     url(r'^$', HomePageView.as_view(), name='home'),
+    url(r'^cover/$', MakeCoverPage.as_view(), name='makecover'),
     url(r'^admin/', include(admin.site.urls)),
 ]

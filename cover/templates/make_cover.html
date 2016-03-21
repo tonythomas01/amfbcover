@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title" style="text-align: center">Design your cover</h3>
+            </div>
+                <div class="panel-body">
+                    <div class="form-group col-md-offset-4">
+                        <input type="file" class="btn btn-default btn" id="inputImage" name="file" accept="image/*">
+                    <span class="docs-tooltip" data-toggle="tooltip" title="Import image with Blob URLs">
+                      <span class="fa fa-upload"></span>
+                    </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-10 col-md-offset-1">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title" style="text-align: center">Crop and position your picture</h3>
+                </div>
+                <div class="panel panel-default panel-body" style="min-height:400px; max-height:400px; background: white;">
+                <img id="image" />
+                </div>
+            </div>
+        </div>
+
+    <div class="col-md-10 col-md-offset-1">
+         <div class="panel panel-default">
+            <div class="panel-heading">
+            <h3 class="panel-title" style="text-align: center">Crop and position your picture</h3>
+            </div>
+            <div class="panel panel-body" >
+                <div class="prev-cover" id="prev_cover" style="width: 853px; height: 315px;position: relative;">
+                    <img src="{% static 'img/cover2shade.png' %}" style="width: 853px; height: 315px;position: absolute; left: 0px; top: 0px; z-index: 5;"/>
+                    <div class="avatar-preview preview-lg" style="position: absolute; right: 0px; top: 0px; z-index: 2; height:315px;"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+        <div id="img-out"></div>
+    <div class="col-md-3 col-md-offset-5">
+
+        <button type="button" id="btnSave" class="btn btn-default">Download</button>
+    </div>
+
+</div>
+
+
+</div>
+{% endblock body %}

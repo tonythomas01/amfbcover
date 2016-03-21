@@ -9,229 +9,235 @@ function main() {
 (function () {
    'use strict';
 
-   /* ==============================================
-  	Testimonial Slider
-  	=============================================== */
+   var console = window.console || { log: function () {} };
+  var $image = $('#image');
+  var $download = $('#download');
+  var $dataX = $('#dataX');
+  var $dataY = $('#dataY');
+  var $dataHeight = $('#dataHeight');
+  var $dataWidth = $('#dataWidth');
+  var $dataRotate = $('#dataRotate');
+  var $dataScaleX = $('#dataScaleX');
+  var $dataScaleY = $('#dataScaleY');
+  var options = {
+        aspectRatio: 16 / 9,
+        preview: '.img-preview',
+        crop: function (e) {
+          $dataX.val(Math.round(e.x));
+          $dataY.val(Math.round(e.y));
+          $dataHeight.val(Math.round(e.height));
+          $dataWidth.val(Math.round(e.width));
+          $dataRotate.val(e.rotate);
+          $dataScaleX.val(e.scaleX);
+          $dataScaleY.val(e.scaleY);
+        }
+      };
 
-  	$('a.page-scroll').click(function() {
-        if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
-          var target = $(this.hash);
-          target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
-          if (target.length) {
-            $('html,body').animate({
-              scrollTop: target.offset().top - 40
-            }, 900);
-            return false;
+
+  // Tooltip
+  $('[data-toggle="tooltip"]').tooltip();
+
+
+  // Cropper
+  $image.on({
+    'build.cropper': function (e) {
+      console.log(e.type);
+    },
+    'built.cropper': function (e) {
+      console.log(e.type);
+    },
+    'cropstart.cropper': function (e) {
+      console.log(e.type, e.action);
+    },
+    'cropmove.cropper': function (e) {
+      console.log(e.type, e.action);
+    },
+    'cropend.cropper': function (e) {
+      console.log(e.type, e.action);
+    },
+    'crop.cropper': function (e) {
+      console.log(e.type, e.x, e.y, e.width, e.height, e.rotate, e.scaleX, e.scaleY);
+    },
+    'zoom.cropper': function (e) {
+      console.log(e.type, e.ratio);
+    }
+  }).cropper(options);
+
+
+  // Buttons
+  if (!$.isFunction(document.createElement('canvas').getContext)) {
+    $('button[data-method="getCroppedCanvas"]').prop('disabled', true);
+  }
+
+  if (typeof document.createElement('cropper').style.transition === 'undefined') {
+    $('button[data-method="rotate"]').prop('disabled', true);
+    $('button[data-method="scale"]').prop('disabled', true);
+  }
+
+
+  // Download
+  if (typeof $download[0].download === 'undefined') {
+    $download.addClass('disabled');
+  }
+
+
+  // Options
+  $('.docs-toggles').on('change', 'input', function () {
+    var $this = $(this);
+    var name = $this.attr('name');
+    var type = $this.prop('type');
+    var cropBoxData;
+    var canvasData;
+
+    if (!$image.data('cropper')) {
+      return;
+    }
+
+    if (type === 'checkbox') {
+      options[name] = $this.prop('checked');
+      cropBoxData = $image.cropper('getCropBoxData');
+      canvasData = $image.cropper('getCanvasData');
+
+      options.built = function () {
+        $image.cropper('setCropBoxData', cropBoxData);
+        $image.cropper('setCanvasData', canvasData);
+      };
+    } else if (type === 'radio') {
+      options[name] = $this.val();
+    }
+
+    $image.cropper('destroy').cropper(options);
+  });
+
+
+  // Methods
+  $('.docs-buttons').on('click', '[data-method]', function () {
+    var $this = $(this);
+    var data = $this.data();
+    var $target;
+    var result;
+
+    if ($this.prop('disabled') || $this.hasClass('disabled')) {
+      return;
+    }
+
+    if ($image.data('cropper') && data.method) {
+      data = $.extend({}, data); // Clone a new one
+
+      if (typeof data.target !== 'undefined') {
+        $target = $(data.target);
+
+        if (typeof data.option === 'undefined') {
+          try {
+            data.option = JSON.parse($target.val());
+          } catch (e) {
+            console.log(e.message);
           }
         }
-      });
+      }
 
-    /*====================================
-    Show Menu on Book
-    ======================================*/
-    $(window).bind('scroll', function() {
-        var navHeight = $(window).height() - 100;
-        if ($(window).scrollTop() > navHeight) {
-            $('.navbar-default').addClass('on');
+      result = $image.cropper(data.method, data.option, data.secondOption);
+
+      switch (data.method) {
+        case 'scaleX':
+        case 'scaleY':
+          $(this).data('option', -data.option);
+          break;
+
+        case 'getCroppedCanvas':
+          if (result) {
+
+            // Bootstrap's Modal
+            $('#getCroppedCanvasModal').modal().find('.modal-body').html(result);
+
+            if (!$download.hasClass('disabled')) {
+              $download.attr('href', result.toDataURL('image/jpeg'));
+            }
+          }
+
+          break;
+      }
+
+      if ($.isPlainObject(result) && $target) {
+        try {
+          $target.val(JSON.stringify(result));
+        } catch (e) {
+          console.log(e.message);
+        }
+      }
+
+    }
+  });
+
+
+  // Keyboard
+  $(document.body).on('keydown', function (e) {
+
+    if (!$image.data('cropper') || this.scrollTop > 300) {
+      return;
+    }
+
+    switch (e.which) {
+      case 37:
+        e.preventDefault();
+        $image.cropper('move', -1, 0);
+        break;
+
+      case 38:
+        e.preventDefault();
+        $image.cropper('move', 0, -1);
+        break;
+
+      case 39:
+        e.preventDefault();
+        $image.cropper('move', 1, 0);
+        break;
+
+      case 40:
+        e.preventDefault();
+        $image.cropper('move', 0, 1);
+        break;
+    }
+
+  });
+
+
+  // Import image
+  var $inputImage = $('#inputImage');
+  var URL = window.URL || window.webkitURL;
+  var blobURL;
+
+  if (URL) {
+    $inputImage.change(function () {
+    alert( "yo");
+      var files = this.files;
+      var file;
+
+      if (!$image.data('cropper')) {
+        return;
+      }
+
+      if (files && files.length) {
+        file = files[0];
+
+        if (/^image\/\w+$/.test(file.type)) {
+          blobURL = URL.createObjectURL(file);
+          $image.one('built.cropper', function () {
+
+            // Revoke when load complete
+            URL.revokeObjectURL(blobURL);
+          }).cropper('reset').cropper('replace', blobURL);
+          $inputImage.val('');
         } else {
-            $('.navbar-default').removeClass('on');
+          window.alert('Please choose an image file.');
         }
+      }
     });
-
-    $('body').scrollspy({
-        target: '.navbar-default',
-        offset: 80
-    });
-
-  	$(document).ready(function() {
-
-        $('[data-toggle="popover"]').popover();
+  } else {
+    $inputImage.prop('disabled', true).parent().addClass('disabled');
+  }
 
 
-        $(".course_remove").click( function() {
-            $.post( '/assets/php/doRemoveCoursefromCart.php' , {
-                course_id : this.value,
-                csrf_token : this.name
-            });
-            this.closest('tr').remove();
-        });
-
-  	  $("#team").owlCarousel({
-
-  	      navigation : false, // Show next and prev buttons
-  	      slideSpeed : 300,
-  	      paginationSpeed : 400,
-  	      autoHeight : true,
-  	      itemsCustom : [
-				        [0, 1],
-				        [450, 2],
-				        [600, 2],
-				        [700, 2],
-				        [1000, 4],
-				        [1200, 4],
-				        [1400, 4],
-				        [1600, 4]
-				      ],
-  	  });
-
-  	  $("#clients").owlCarousel({
-
-  	      navigation : false, // Show next and prev buttons
-  	      slideSpeed : 300,
-  	      paginationSpeed : 400,
-  	      autoHeight : true,
-  	      itemsCustom : [
-				        [0, 1],
-				        [450, 1],
-				        [600, 1],
-				        [700, 1],
-				        [1000, 1],
-				        [1200, 1],
-				        [1400, 1],
-				        [1600, 1]
-				      ],
-  	  });
-
-        $("#service").owlCarousel({
-
-            navigation : false, // Show next and prev buttons
-            slideSpeed : 300,
-            paginationSpeed : 400,
-            autoHeight : true,
-            itemsCustom : [
-                [0, 1],
-                [450, 3],
-                [600, 3],
-                [700, 3],
-                [1000, 3],
-                [1200, 3],
-                [1400, 3],
-                [1600, 3]
-            ],
-        });
-
-      $("#testimonial").owlCarousel({
-        navigation : false, // Show next and prev buttons
-        slideSpeed : 300,
-        paginationSpeed : 400,
-        singleItem:true
-        });
-
-        function showHide(d)
-        {
-            alert('clicked');
-            var onediv = document.getElementById(d);
-            var divs=['content1','content2','content3'];
-            for (var i=0;i<divs.length;i++)
-            {
-                if (onediv != document.getElementById(divs[i]))
-                {
-                    document.getElementById(divs[i]).style.display='none';
-                }
-            }
-            onediv.style.display = 'block';
-        }
-
-
-        $(function stay() {
-            $('ul.menu li a').click(function () {
-                $('ul.menu li a').removeClass('selected');
-                $(this).addClass('selected');
-
-            });
-        });
-
-        $(document).ready(function() {
-
-            var owl = $("#owl-demo");
-            owl.owlCarousel({
-              itemsCustom : [
-                  [0, 1],
-                  [450, 2],
-                  [600, 2],
-                  [700, 2],
-                  [1000, 2],
-                  [1200, 2],
-                  [1400, 2],
-                  [1600, 2]
-              ],
-            });
-
-            // Custom Navigation Events
-            $(".next").click(function(){
-                owl.trigger('owl.next');
-            })
-            $(".prev").click(function(){
-                owl.trigger('owl.prev');
-            })
-            $(".play").click(function(){
-                owl.trigger('owl.play',1000); //owl.play event accept autoPlay speed as second parameter
-            })
-            $(".stop").click(function(){
-                owl.trigger('owl.stop');
-            })
-        });
-
-        $(document).ready(function() {
-
-            var owlportal = $("#owl-portal");
-
-            owlportal.owlCarousel({
-                items : 5, //10 items above 1000px browser width
-                itemsDesktop : [1000,3], //5 items between 1000px and 901px
-                itemsDesktopSmall : [900,3], // betweem 900px and 601px
-                itemsTablet: [600,2], //2 items between 600 and 0
-                itemsMobile : false // itemsMobile disabled - inherit from itemsTablet option
-            });
-
-            // Custom Navigation Events
-            $(".next").click(function(){
-                owlportal.trigger('owl.next');
-            })
-            $(".prev").click(function(){
-                owlportal.trigger('owl.prev');
-            })
-            $(".play").click(function(){
-                owlportal.trigger('owl.play',1000); //owl.play event accept autoPlay speed as second parameter
-            })
-            $(".stop").click(function(){
-                owlportal.trigger('owl.stop');
-            })
-
-        });
-
-
-    });
-
-  	/*====================================
-    Portfolio Isotope Filter
-    ======================================*/
-    $(window).load(function() {
-        var $container = $('#lightbox');
-        $container.isotope({
-            filter: '*',
-            animationOptions: {
-                duration: 750,
-                easing: 'linear',
-                queue: false
-            }
-        });
-        $('.cat a').click(function() {
-            $('.cat .active').removeClass('active');
-            $(this).addClass('active');
-            var selector = $(this).attr('data-filter');
-            $container.isotope({
-                filter: selector,
-                animationOptions: {
-                    duration: 750,
-                    easing: 'linear',
-                    queue: false
-                }
-            });
-            return false;
-        });
-
-    });
 
 
 
