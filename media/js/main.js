@@ -237,13 +237,11 @@ $(function () {
         html2canvas( $("#prev_cover"), {
             onrendered: function(canvas) {
                 theCanvas = canvas;
-                document.body.appendChild(theCanvas );
-
                 // Convert and download as image
                 Canvas2Image.saveAsJPEG(canvas);
-                $("#img-out").append(theCanvas );
                 // Clean up
                 //document.body.removeChild(canvas);
+//             document.body.appendChild(canvas);
             }
         });
     });

@@ -4,9 +4,7 @@
 //
 //
 
-function main() {
-
-(function () {
+$(function () {
    'use strict';
 
    var console = window.console || { log: function () {} };
@@ -20,8 +18,8 @@ function main() {
   var $dataScaleX = $('#dataScaleX');
   var $dataScaleY = $('#dataScaleY');
   var options = {
-        aspectRatio: 16 / 9,
-        preview: '.img-preview',
+        aspectRatio: 4 / 3,
+        preview: '.avatar-preview',
         crop: function (e) {
           $dataX.val(Math.round(e.x));
           $dataY.val(Math.round(e.y));
@@ -73,12 +71,12 @@ function main() {
     $('button[data-method="rotate"]').prop('disabled', true);
     $('button[data-method="scale"]').prop('disabled', true);
   }
-
-
-  // Download
-  if (typeof $download[0].download === 'undefined') {
-    $download.addClass('disabled');
-  }
+//
+//
+//  // Download
+//  if (typeof $download[0].download === 'undefined') {
+//    $download.addClass('disabled');
+//  }
 
 
   // Options
@@ -206,10 +204,8 @@ function main() {
   var $inputImage = $('#inputImage');
   var URL = window.URL || window.webkitURL;
   var blobURL;
-
   if (URL) {
-    $inputImage.change(function () {
-    alert( "yo");
+    $inputImage.change( function () {
       var files = this.files;
       var file;
 
@@ -236,13 +232,22 @@ function main() {
   } else {
     $inputImage.prop('disabled', true).parent().addClass('disabled');
   }
+  var theCanvas;
+   $("#btnSave").click(function() {
+        html2canvas( document.body, {
+            onrendered: function(canvas) {
+//                theCanvas = canvas;
+//                document.body.appendChild(theCanvas);
+//
+//                // Convert and download as image
+//                Canvas2Image.saveAsJPEG(canvas);
+//                $("#img-out").append(theCanvas );
+//                // Clean up
+//                //document.body.removeChild(canvas);
+             document.body.appendChild(canvas);
+            }
+        });
+    });
 
 
-
-
-
-}());
-
-
-}
-main();
+});
